@@ -2,6 +2,7 @@ package com.example.lab_week_05
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.lab_week_05.api.CatApiService
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val apiResponseView: TextView by lazy { findViewById(R.id.api_response) }
+    private val imageResultView: ImageView by lazy { findViewById(R.id.image_result) }
+    private val imageLoader: ImageLoader by lazy { GlideLoader(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,8 +46,13 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<List<ImageData>>, response: Response<List<ImageData>>) {
                 if (response.isSuccessful) {
-                    val list = response.body()
-                    val firstUrl = list?.firstOrNull()?.imageUrl ?: "No URL"
+                    val imageList = response.body()
+                    val firstUrl = imageList?.firstOrNull()?.imageUrl.orEmpty()
+                    if (firstUrl.isNotBlank()) {
+                        imageLoader.loadImage(firstUrl, imageResultView)
+                    } else {
+                        Log.d(MAIN_ACTIVITY, "Missing image URL")
+                    }
                     apiResponseView.text = getString(R.string.image_placeholder, firstUrl)
                 } else {
                     apiResponseView.text = "Error: ${response.code()}"
